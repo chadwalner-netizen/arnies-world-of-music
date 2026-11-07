@@ -1,0 +1,325 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Arnie's World of Music — a personal collection of guitar performances, favorite songs, and musical memories.">
+  <title>Arnie's World of Music</title>
+  <style>
+    :root {
+      --navy: #061527;
+      --navy-light: #102740;
+      --gold: #e9bd63;
+      --gold-light: #ffe3a0;
+      --cream: #fff5e6;
+      --muted: #d2d9e2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--navy);
+      color: var(--cream);
+      font-family: Georgia, 'Times New Roman', serif;
+      line-height: 1.6;
+    }
+    a { color: inherit; }
+    .container {
+      width: min(1160px, 92%);
+      margin: auto;
+    }
+    header {
+      background: #04101f;
+      border-bottom: 1px solid #9b773a;
+      text-align: center;
+    }
+    .brand {
+      display: inline-block;
+      padding: 24px 12px 18px;
+      color: var(--gold-light);
+      font-size: clamp(29px, 4vw, 46px);
+      font-style: italic;
+      font-weight: bold;
+      line-height: 1.1;
+      text-decoration: none;
+    }
+    .brand span {
+      display: block;
+      font-size: .48em;
+      letter-spacing: 3px;
+      margin-top: 7px;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 10px;
+      border-top: 1px solid #71572f;
+    }
+    nav a {
+      font: 600 15px Arial, sans-serif;
+      text-decoration: none;
+      padding: 12px 15px;
+      border-radius: 4px;
+    }
+    nav a:hover, nav a.active {
+      background: var(--gold);
+      color: #061527;
+    }
+    .hero {
+      position: relative;
+      background:
+        radial-gradient(ellipse at 78% 35%, #7b542c55, transparent 42%),
+        linear-gradient(120deg, #07192c, #172d42 60%, #071423);
+      border-bottom: 1px solid #71572f;
+      padding: 70px 0;
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .eyebrow {
+      color: var(--gold);
+      font: 700 13px Arial, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+    h1 {
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: 1.08;
+      margin: 14px 0 24px;
+      font-weight: normal;
+    }
+    h1 em { color: var(--gold-light); }
+    .intro {
+      font-size: 21px;
+      max-width: 540px;
+      color: var(--muted);
+    }
+    .button {
+      display: inline-block;
+      background: linear-gradient(#ffe4a0, #c99842);
+      color: #081625;
+      font: bold 16px Arial, sans-serif;
+      text-decoration: none;
+      border-radius: 7px;
+      padding: 16px 24px;
+      margin-top: 20px;
+      box-shadow: 0 4px 20px #0005;
+    }
+    .button:hover { filter: brightness(1.12); }
+    .portrait {
+      min-height: 370px;
+      border: 2px solid #b88b45;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #243a4b, #0b1524);
+      display: grid;
+      place-content: center;
+      text-align: center;
+      padding: 30px;
+      box-shadow: 0 18px 40px #0007;
+    }
+    .portrait .symbol { font-size: 76px; }
+    .portrait p {
+      color: var(--gold-light);
+      font-size: 20px;
+    }
+    section.features { padding: 68px 0 85px; }
+    .section-title {
+      color: var(--gold-light);
+      text-align: center;
+      font-size: clamp(30px, 4vw, 43px);
+      margin: 0 0 10px;
+    }
+    .section-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font: 17px/1.6 Arial, sans-serif;
+      margin: 0 0 36px;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    .card {
+      border: 1px solid #b88b45;
+      border-radius: 12px;
+      padding: 30px 20px;
+      background: linear-gradient(155deg, #132e47, #07192c);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card .icon { font-size: 43px; }
+    .card h3 {
+      color: var(--gold-light);
+      font-size: 25px;
+      line-height: 1.2;
+      margin: 15px 0;
+    }
+    .card p {
+      font: 16px/1.6 Arial, sans-serif;
+      color: var(--muted);
+      flex: 1;
+    }
+    .card a {
+      margin-top: 16px;
+      border: 1px solid var(--gold);
+      color: var(--gold-light);
+      padding: 10px 18px;
+      border-radius: 5px;
+      text-decoration: none;
+      font: bold 14px Arial, sans-serif;
+    }
+    .card a:hover {
+      background: var(--gold);
+      color: var(--navy);
+    }
+    .message {
+      background: #102740;
+      border-top: 1px solid #71572f;
+      border-bottom: 1px solid #71572f;
+      text-align: center;
+      padding: 55px 20px;
+    }
+    .message blockquote {
+      color: var(--gold-light);
+      font-size: clamp(22px, 3vw, 32px);
+      font-style: italic;
+      max-width: 800px;
+      margin: auto;
+    }
+    .message p { color: var(--muted); }
+    footer {
+      text-align: center;
+      padding: 30px;
+      font: 14px Arial, sans-serif;
+      color: #b7c0cd;
+    }
+    @media (max-width: 850px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .hero { padding: 45px 0; }
+      .portrait { min-height: 280px; }
+    }
+    @media (max-width: 520px) {
+      .cards { grid-template-columns: 1fr; }
+      nav a { font-size: 14px; padding: 10px; }
+      .intro { font-size: 18px; }
+      .card { padding: 25px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="index.html">
+      Arnie's
+      <span>WORLD OF MUSIC ♪</span>
+    </a>
+    <nav aria-label="Main navigation">
+      <a class="active" href="index.html">Home</a>
+      <a href="calendar.html">Music Calendar</a>
+      <a href="library.html">Video Library</a>
+      <a href="playlist.html">My Playlist</a>
+      <a href="about.html">About Arnie</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <div class="eyebrow">A lifetime of music</div>
+          <h1>Welcome to <em>Arnie's World of Music</em></h1>
+          <p class="intro">
+            A personal collection of guitar performances,
+            favorite songs, and musical memories to share
+            with family and friends.
+          </p>
+          <a class="button" href="library.html">
+            ▶ Explore the Music
+          </a>
+        </div>
+        <div class="portrait">
+          <div class="symbol" aria-hidden="true">♫</div>
+          <p>Arnie's photograph will appear here</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">Explore the Music</h2>
+        <p class="section-subtitle">
+          Discover performances, revisit favorites,
+          and enjoy a new song every day.
+        </p>
+
+        <div class="cards">
+          <article class="card">
+            <div class="icon" aria-hidden="true">▦</div>
+            <h3>Music Calendar</h3>
+            <p>
+              Choose a date and discover its featured
+              guitar performance.
+            </p>
+            <a href="calendar.html">View Calendar</a>
+          </article>
+
+          <article class="card">
+            <div class="icon" aria-hidden="true">▶</div>
+            <h3>Video Library</h3>
+            <p>
+              Search Arnie's performances by song title,
+              artist, or genre.
+            </p>
+            <a href="library.html">Browse Videos</a>
+          </article>
+
+          <article class="card">
+            <div class="icon" aria-hidden="true">♫</div>
+            <h3>My Playlist</h3>
+            <p>
+              Choose your favorite songs and arrange
+              them into one personal playlist.
+            </p>
+            <a href="playlist.html">My Playlist</a>
+          </article>
+
+          <article class="card">
+            <div class="icon" aria-hidden="true">★</div>
+            <h3>About Arnie</h3>
+            <p>
+              Learn about Arnie and the music he loves
+              to share with others.
+            </p>
+            <a href="about.html">Meet Arnie</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="message">
+      <blockquote>
+        "Music brings people together."
+      </blockquote>
+      <p>A collection of performances to enjoy and share.</p>
+    </section>
+  </main>
+
+  <footer>
+    Arnie's World of Music &copy; <span id="year"></span>
+    · Made with a love of music.
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent =
+      new Date().getFullYear();
+  </script>
+</body>
+</html>
