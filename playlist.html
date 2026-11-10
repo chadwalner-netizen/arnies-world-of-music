@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Create and arrange a personal collection of favorite performances from Arnie's World of Music.">
+  <title>My Playlist | Arnie's World of Music</title>
+  <link rel="stylesheet" href="shared-theme.css">
+  <link rel="stylesheet" href="playlist.css">
+  <script src="video-data.js" defer></script>
+  <script src="playlist-storage.js" defer></script>
+  <script src="playlist.js" defer></script>
+</head>
+<body class="playlist-page">
+  <a class="skip-link" href="#playlist-content">Skip to playlist</a>
+
+  <header class="site-header home-matched-header">
+    <div class="hm-desktop">
+      <nav class="hm-nav" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="calendar.html">Music Calendar</a>
+        <a href="video-library.html">Video Library</a>
+        <a class="hm-current" aria-current="page" href="playlist.html">My Playlist</a>
+        <a href="about.html">About Arnie</a>
+      </nav>
+    </div>
+    <div class="hm-mobile">
+      <a class="hm-logo" href="index.html" aria-label="Arnie's World of Music home">
+        <img src="assets/header-logo.webp" alt="Arnie’s World of Music">
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="calendar.html">Music Calendar</a>
+        <a href="video-library.html">Video Library</a>
+        <a class="hm-current" aria-current="page" href="playlist.html">My Playlist</a>
+        <a href="about.html">About Arnie</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="playlist-content" class="playlist-main">
+    <section class="playlist-hero" aria-labelledby="page-title">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <p class="playlist-eyebrow"><span>✦</span> YOUR FAVORITE PERFORMANCES <span>✦</span></p>
+      <h1 id="page-title">My Playlist</h1>
+      <div class="title-filigree" aria-hidden="true"><span>♫</span></div>
+      <p>Create your own collection of favorite performances from Arnie's World of Music.</p>
+    </section>
+
+    <section class="playlist-section" aria-labelledby="collection-heading">
+      <div class="collection-heading">
+        <div>
+          <p class="section-kicker">YOUR PERSONAL COLLECTION</p>
+          <h2 id="collection-heading">Songs You’ve Saved</h2>
+          <p id="playlist-count" class="playlist-count">0 performances</p>
+        </div>
+        <div class="collection-actions">
+          <a class="gold-action browse-action" href="video-library.html">Browse Video Library <span aria-hidden="true">→</span></a>
+          <button class="clear-playlist" id="clear-playlist" type="button">Clear Playlist</button>
+        </div>
+      </div>
+
+      <p class="storage-warning" id="storage-warning" role="status" hidden>
+        Browser storage is unavailable. Your playlist will work during this visit but cannot be saved after the page closes.
+      </p>
+
+      <div class="empty-playlist" id="empty-playlist">
+        <div class="empty-note" aria-hidden="true">♫</div>
+        <h3>Your playlist is waiting for its first song.</h3>
+        <p>Visit the Video Library and choose “Add to Playlist” on any performance you want to keep close.</p>
+        <a class="gold-action" href="video-library.html">Find a Favorite Performance <span aria-hidden="true">→</span></a>
+      </div>
+
+      <ol class="playlist-list" id="playlist-list" aria-label="Saved performances"></ol>
+      <p class="playlist-feedback sr-only" id="playlist-feedback" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <dialog class="player-dialog" id="player-dialog" aria-labelledby="player-title">
+    <div class="player-dialog-card">
+      <button class="dialog-close" id="close-player" type="button" aria-label="Close video player">×</button>
+      <p class="dialog-kicker">NOW PLAYING</p>
+      <h2 id="player-title"></h2>
+      <div class="player-frame" id="player-frame"></div>
+    </div>
+  </dialog>
+
+  <footer class="playlist-footer">
+    <span>♫ Arnie’s World of Music</span>
+    <span>Music &nbsp; • &nbsp; Guitar &nbsp; • &nbsp; Great Songs &nbsp; • &nbsp; Family &amp; Friends</span>
+    <a href="index.html">Back to Home ↑</a>
+  </footer>
+</body>
+</html>
