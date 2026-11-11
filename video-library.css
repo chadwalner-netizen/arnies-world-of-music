@@ -31,6 +31,10 @@ body {
   height: auto;
 }
 
+.mobile-library-hero {
+  display: none;
+}
+
 .content {
   width: min(100%, var(--content-width));
   margin: 0 auto;
@@ -352,7 +356,7 @@ footer {
 }
 
 dialog {
-  width: min(560px, calc(100% - 2rem));
+  width: min(820px, calc(100% - 2rem));
   padding: 2rem;
   border: 2px solid #c99a42;
   border-radius: 16px;
@@ -370,6 +374,35 @@ dialog h2 {
   margin-top: 0;
   color: var(--gold-300);
   font: 700 2rem/1.15 var(--display);
+}
+
+.video-player {
+  width: 100%;
+  margin: 1rem 0 1.25rem;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--gold-500);
+  border-radius: 10px;
+  background: #000;
+  box-shadow: 0 12px 32px #000b;
+}
+
+.video-player[hidden] {
+  display: none;
+}
+
+.video-player iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
 }
 
 @media (hover: hover) {
@@ -411,9 +444,40 @@ dialog h2 {
   }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 767px) {
   .hero {
     border-inline: 0;
+  }
+
+  .hero::after,
+  .hero > img {
+    display: none;
+  }
+
+  .mobile-library-hero {
+    position: relative;
+    z-index: 1;
+    display: block;
+    padding: 2.25rem 1rem 2rem;
+    text-align: center;
+    background:
+      radial-gradient(circle at 50% 0%, #1c426336, transparent 62%),
+      linear-gradient(145deg, #081827, #030a12 72%);
+  }
+
+  .mobile-library-hero h1 {
+    margin: 0;
+    color: var(--gold-300);
+    font: 700 clamp(2.7rem, 12vw, 4rem)/1.05 var(--display);
+    text-shadow: 0 3px 14px #000b, 0 0 20px #d8a13c3d;
+  }
+
+  .mobile-library-hero p {
+    max-width: 34rem;
+    margin: .75rem auto 0;
+    color: #e3e8ed;
+    font-size: 1.05rem;
+    line-height: 1.55;
   }
 
   .content {
@@ -445,6 +509,14 @@ dialog h2 {
 
   .card h3 {
     font-size: 1.16rem;
+  }
+
+  #sections .section:first-child {
+    margin-top: 2.55rem;
+  }
+
+  .playlist {
+    margin-top: 3.35rem;
   }
 }
 
@@ -483,11 +555,24 @@ dialog h2 {
   }
 
   .playlist {
-    padding: 1.6rem 1.15rem;
+    padding: 1.35rem 1.1rem;
+  }
+
+  .playlist-items {
+    margin: .9rem 0 1.1rem;
   }
 
   .playlist-actions,
   .playlist-actions .gold-button {
+    width: 100%;
+  }
+
+  dialog {
+    padding: 1.25rem;
+  }
+
+  .dialog-actions,
+  .dialog-actions .gold-button {
     width: 100%;
   }
 }

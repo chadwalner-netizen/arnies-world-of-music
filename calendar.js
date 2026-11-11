@@ -1,35 +1,28 @@
 "use strict";
 
 (() => {
-  const data = window.ARNIE_MUSIC_DATA;
+  const songs = window.ARNIE_CALENDAR_SONGS || {};
   const grid = document.getElementById("calendar-grid");
   const monthTitle = document.getElementById("month-title");
+  const mobileSongList = document.getElementById("mobile-song-list");
   const featuredLabel = document.getElementById("featured-label");
   const featuredHeading = document.getElementById("featured-heading");
   const featuredOverline = document.getElementById("featured-overline");
   const selectedDateLabel = document.getElementById("selected-date");
   const featuredTitle = document.getElementById("featured-song-title");
   const featuredMeta = document.getElementById("featured-song-meta");
-  const thumbnail = document.getElementById("featured-thumbnail");
+  const featuredDescription = document.getElementById("featured-description");
   const media = document.getElementById("featured-media");
   const watchButton = document.getElementById("watch-performance");
+  const sourceLink = document.getElementById("original-archive-link");
+  const youtubeLink = document.getElementById("watch-on-youtube");
   const playbackStatus = document.getElementById("playback-status");
   const announcement = document.getElementById("selection-announcement");
-
-  if (!data || !Array.isArray(data.videos) || !data.videos.length || !Array.isArray(data.photos)) {
-    featuredTitle.textContent = "The Video Library data could not be loaded.";
-    featuredMeta.textContent = "Please return to the Video Library and try again.";
-    playbackStatus.textContent = "No song data is available for the calendar.";
-    watchButton.disabled = true;
-    grid.setAttribute("aria-label", "Calendar unavailable because song data could not be loaded");
-    return;
-  }
-
-  const videos = data.videos.filter(video => Number.isInteger(video.thumb) && data.photos[video.thumb]);
   const today = localDate(new Date());
-  let selectedDate = today;
-  let visibleMonth = new Date(today.getFullYear(), today.getMonth(), 1, 12);
-  let selectedVideo = null;
+  // Open on the curated November collection.
+  let selectedDate = new Date(2026, 10, 11, 12);
+  let visibleMonth = new Date(2026, 10, 1, 12);
+  let selectedSong = null;
 
   const fullDateFormatter = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -60,59 +53,92 @@
   }
 
   function songForDate(date) {
-    const key = dateKey(date);
-    let hash = 2166136261;
-    for (let index = 0; index < key.length; index += 1) {
-      hash ^= key.charCodeAt(index);
-      hash = Math.imul(hash, 16777619);
-    }
-    return videos[(hash >>> 0) % videos.length];
+    return Object.prototype.hasOwnProperty.call(songs, dateKey(date)) ? songs[dateKey(date)] : null;
   }
 
-  function hasPlayableVideo(video) {
-    return typeof video.youtubeId === "string" && /^[A-Za-z0-9_-]{6,20}$/.test(video.youtubeId);
+  function hasPlayableVideo(song) {
+    return Boolean(song && typeof song.youtubeId === "string" && /^[A-Za-z0-9_-]{11}$/.test(song.youtubeId));
   }
 
-  function resetFeaturedMedia(video) {
-    media.classList.remove("is-playing");
-    media.replaceChildren(thumbnail, createMusicNote());
-    thumbnail.src = data.photos[video.thumb];
-    thumbnail.alt = `Arnie performing ${video.title}`;
-  }
-
-  function createMusicNote() {
+  function makePlaceholderArt(song) {
+    const cover = document.createElement("div");
+    cover.className = "classic-song-art";
     const note = document.createElement("span");
-    note.className = "media-note";
+    note.className = "classic-song-art-note";
     note.setAttribute("aria-hidden", "true");
     note.textContent = "♫";
-    return note;
+    const title = document.createElement("span");
+    title.className = "classic-song-art-title";
+    title.textContent = song ? song.title : "Morning Maniac Music";
+    cover.append(note, title);
+    return cover;
+  }
+
+  function resetFeaturedMedia(song) {
+    media.classList.remove("is-playing");
+    if (!hasPlayableVideo(song)) {
+      media.replaceChildren(makePlaceholderArt(song));
+      return;
+    }
+    // Use YouTube's thumbnail service for the owner's exact selected video.
+    // Fall back gracefully if thumbnails are blocked or unavailable.
+    const image = document.createElement("img");
+    image.className = "featured-video-thumbnail";
+    image.src = `https://i.ytimg.com/vi/${encodeURIComponent(song.youtubeId)}/hqdefault.jpg`;
+    image.alt = `Video thumbnail for ${song.title}`;
+    image.loading = "eager";
+    image.decoding = "async";
+    image.addEventListener("error", () => {
+      if (media.contains(image)) media.replaceChildren(makePlaceholderArt(song));
+    }, { once: true });
+    media.replaceChildren(image);
   }
 
   function updateFeaturedSong(date, shouldAnnounce = true) {
     selectedDate = localDate(date);
-    selectedVideo = songForDate(selectedDate);
+    selectedSong = songForDate(selectedDate);
     const isToday = sameDate(selectedDate, today);
-
-    featuredLabel.textContent = isToday ? "Today’s Featured Song" : "Featured Song";
-    featuredHeading.textContent = isToday ? "A Performance for Today" : "Featured Performance";
-    featuredOverline.textContent = isToday ? "Today’s Selection" : "Selected Performance";
+    featuredLabel.textContent = isToday ? "Today’s Music Calendar" : "Featured Selection";
+    featuredHeading.textContent = selectedSong ? "A Classic for the Day" : "More Music Coming Soon";
+    featuredOverline.textContent = selectedSong ? "Morning Maniac Music · Song of the Day" : "More Songs Ahead";
     selectedDateLabel.textContent = fullDateFormatter.format(selectedDate);
-    featuredTitle.textContent = selectedVideo.title;
-    featuredMeta.textContent = `${selectedVideo.artist} · ${selectedVideo.genre}`;
-    resetFeaturedMedia(selectedVideo);
+    featuredTitle.textContent = selectedSong ? selectedSong.title : "This Date Is Not Yet Populated";
+    featuredMeta.textContent = selectedSong
+      ? (selectedSong.artist ? `${selectedSong.artistLabel}: ${selectedSong.artist}` : "From Arnie’s Morning Maniac Music archive")
+      : "Select a highlighted date to explore an archived song.";
+    featuredDescription.textContent = selectedSong
+      ? (hasPlayableVideo(selectedSong)
+        ? "Selected from Arnie’s Morning Maniac Music collection. Play the recording here or open it on YouTube; the original song page is also available."
+        : "The recording is unavailable here, but you can visit Arnie’s original song page.")
+      : "There’s no song featured for this date yet. Choose a highlighted day to explore Arnie’s collection.";
+    resetFeaturedMedia(selectedSong);
 
-    if (hasPlayableVideo(selectedVideo)) {
-      watchButton.disabled = false;
-      watchButton.innerHTML = '<span aria-hidden="true">▶</span> Watch the Performance';
-      playbackStatus.textContent = "Play this performance without leaving the calendar.";
+    if (selectedSong && selectedSong.sourceUrl) {
+      sourceLink.href = selectedSong.sourceUrl;
+      sourceLink.hidden = false;
     } else {
-      watchButton.disabled = true;
-      watchButton.textContent = "Video Link Coming Soon";
-      playbackStatus.textContent = "This performance is in the Video Library, but its YouTube link has not been added yet.";
+      sourceLink.hidden = true;
+      sourceLink.removeAttribute("href");
     }
-
+    if (hasPlayableVideo(selectedSong)) {
+      youtubeLink.href = `https://www.youtube.com/watch?v=${encodeURIComponent(selectedSong.youtubeId)}`;
+      youtubeLink.hidden = false;
+      watchButton.disabled = false;
+      watchButton.innerHTML = '<span aria-hidden="true">▶</span> Play Original Recording';
+      playbackStatus.textContent = "If playback is unavailable here, choose Watch on YouTube.";
+    } else {
+      youtubeLink.hidden = true;
+      youtubeLink.removeAttribute("href");
+      watchButton.disabled = true;
+      watchButton.textContent = selectedSong ? "Video Unavailable" : "Song Coming Soon";
+      playbackStatus.textContent = selectedSong
+        ? "Recording unavailable. Visit Arnie’s original song page."
+        : "Choose a highlighted date to discover a song.";
+    }
     if (shouldAnnounce) {
-      announcement.textContent = `${fullDateFormatter.format(selectedDate)}: ${selectedVideo.title} by ${selectedVideo.artist}.`;
+      announcement.textContent = selectedSong
+        ? `${fullDateFormatter.format(selectedDate)}: ${selectedSong.title}.`
+        : `${fullDateFormatter.format(selectedDate)}: not yet populated.`;
     }
   }
 
@@ -120,7 +146,9 @@
     const year = visibleMonth.getFullYear();
     const month = visibleMonth.getMonth();
     const firstOfMonth = new Date(year, month, 1, 12);
-    const firstCellDate = new Date(year, month, 1 - firstOfMonth.getDay(), 12);
+    const firstDayOffset = firstOfMonth.getDay();
+    const daysInMonth = new Date(year, month + 1, 0, 12).getDate();
+    const cellCount = Math.ceil((firstDayOffset + daysInMonth) / 7) * 7;
     const selectedInVisibleMonth = selectedDate.getFullYear() === year && selectedDate.getMonth() === month;
     const fragment = document.createDocumentFragment();
     let tabStopAssigned = false;
@@ -130,22 +158,26 @@
     document.getElementById("next-month").setAttribute("aria-label", `Show ${monthFormatter.format(new Date(year, month + 1, 1, 12))}`);
     grid.replaceChildren();
 
-    for (let index = 0; index < 42; index += 1) {
-      const cellDate = new Date(
-        firstCellDate.getFullYear(),
-        firstCellDate.getMonth(),
-        firstCellDate.getDate() + index,
-        12
-      );
+    for (let index = 0; index < cellCount; index += 1) {
+      const dayNumber = index - firstDayOffset + 1;
+      // Preserve weekday alignment without showing dates from adjacent months.
+      if (dayNumber < 1 || dayNumber > daysInMonth) {
+        const spacer = document.createElement("div");
+        spacer.className = "calendar-empty-slot";
+        spacer.setAttribute("aria-hidden", "true");
+        fragment.append(spacer);
+        continue;
+      }
+      const cellDate = new Date(year, month, dayNumber, 12);
       const song = songForDate(cellDate);
       const key = dateKey(cellDate);
-      const isOutside = cellDate.getMonth() !== month;
       const isToday = sameDate(cellDate, today);
       const isSelected = sameDate(cellDate, selectedDate);
       const cell = document.createElement("div");
       const button = document.createElement("button");
       const number = document.createElement("span");
       const mark = document.createElement("span");
+      const songTitle = document.createElement("span");
 
       cell.className = "calendar-cell";
       cell.setAttribute("role", "gridcell");
@@ -154,9 +186,8 @@
       button.type = "button";
       button.className = "day-button";
       button.dataset.date = key;
-      button.setAttribute("aria-label", `${fullDateFormatter.format(cellDate)} — ${song.title} by ${song.artist}`);
+      button.setAttribute("aria-label", song ? `${fullDateFormatter.format(cellDate)} — ${song.title}` : `${fullDateFormatter.format(cellDate)} — Coming soon`);
       button.setAttribute("aria-pressed", String(isSelected));
-      if (isOutside) button.classList.add("outside-month");
       if (isToday) {
         button.classList.add("is-today");
         button.setAttribute("aria-current", "date");
@@ -165,7 +196,7 @@
 
       const shouldBeTabStop = selectedInVisibleMonth
         ? isSelected
-        : (!tabStopAssigned && !isOutside);
+        : (!tabStopAssigned);
       button.tabIndex = shouldBeTabStop ? 0 : -1;
       if (shouldBeTabStop) tabStopAssigned = true;
 
@@ -173,13 +204,49 @@
       number.textContent = String(cellDate.getDate());
       mark.className = "day-song-mark";
       mark.setAttribute("aria-hidden", "true");
-      mark.textContent = "♫";
-      button.append(number, mark);
+      mark.textContent = song ? "♫" : "";
+      if (song) {
+        button.classList.add("has-song");
+        songTitle.className = "day-song-title";
+        songTitle.textContent = song.title;
+        songTitle.title = song.title;
+        button.append(number, songTitle, mark);
+      } else {
+        button.append(number, mark);
+      }
       cell.append(button);
       fragment.append(cell);
     }
 
     grid.append(fragment);
+
+    // On phones the seven-column grid cannot legibly display long titles.
+    // Offer a complete, tappable song index underneath instead.
+    mobileSongList.replaceChildren();
+    const songEntries = Object.entries(songs)
+      .filter(([key]) => key.startsWith(`${year}-${String(month + 1).padStart(2, "0")}-`))
+      .sort(([first], [second]) => first.localeCompare(second));
+    if (songEntries.length) {
+      const listHeading = document.createElement("h4");
+      listHeading.textContent = "Songs this month";
+      mobileSongList.append(listHeading);
+      for (const [key, song] of songEntries) {
+        const songDate = dateFromKey(key);
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "mobile-song-item";
+        if (key === dateKey(selectedDate)) item.classList.add("is-selected");
+        const day = document.createElement("span");
+        day.className = "mobile-song-day";
+        day.textContent = String(songDate.getDate());
+        const title = document.createElement("span");
+        title.className = "mobile-song-title";
+        title.textContent = song.title;
+        item.append(day, title);
+        item.addEventListener("click", () => selectDate(songDate));
+        mobileSongList.append(item);
+      }
+    }
 
     if (focusKey) {
       const target = grid.querySelector(`[data-date="${focusKey}"]`);
@@ -211,7 +278,13 @@
       targetButton.focus();
     } else {
       visibleMonth = new Date(target.getFullYear(), target.getMonth(), 1, 12);
-      renderCalendar(targetKey);
+      renderCalendar();
+      const newButton = grid.querySelector(`[data-date="${targetKey}"]`);
+      if (newButton) {
+        grid.querySelectorAll(".day-button").forEach(item => { item.tabIndex = -1; });
+        newButton.tabIndex = 0;
+        newButton.focus();
+      }
     }
   }
 
@@ -263,17 +336,17 @@
   document.getElementById("show-today").addEventListener("click", () => selectDate(today));
 
   watchButton.addEventListener("click", () => {
-    if (!hasPlayableVideo(selectedVideo)) return;
+    if (!hasPlayableVideo(selectedSong)) return;
     const iframe = document.createElement("iframe");
-    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(selectedVideo.youtubeId)}?autoplay=1&rel=0`;
-    iframe.title = `${selectedVideo.title} performed by Arnie`;
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(selectedSong.youtubeId)}?autoplay=1&rel=0`;
+    iframe.title = `${selectedSong.title} — original recording`;
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
     iframe.allowFullscreen = true;
     media.classList.add("is-playing");
     media.replaceChildren(iframe);
-    playbackStatus.textContent = `Now playing ${selectedVideo.title} by ${selectedVideo.artist}.`;
+    playbackStatus.textContent = "If this player shows an error, use Watch on YouTube instead.";
   });
 
-  updateFeaturedSong(today, false);
+  updateFeaturedSong(selectedDate, false);
   renderCalendar();
 })();

@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Discover a featured performance for every day in Arnie's World of Music.">
+  <meta name="description" content="Explore Arnie's original Morning Maniac Music selections for November.">
   <title>Music Calendar | Arnie's World of Music</title>
   <link rel="stylesheet" href="shared-theme.css">
   <link rel="stylesheet" href="calendar.css">
-  <script src="video-data.js" defer></script>
+  <script src="calendar-songs.js" defer></script>
   <script src="calendar.js" defer></script>
 </head>
 <body class="calendar-page">
@@ -20,7 +20,7 @@
         <a class="hm-current" aria-current="page" href="calendar.html">Music Calendar</a>
         <a href="video-library.html">Video Library</a>
         <a href="playlist.html">My Playlist</a>
-        <a href="about.html">About Arnie</a>
+        <a href="guitars.html">My Guitars</a><a href="about.html">About Arnie</a>
       </nav>
     </div>
     <div class="hm-mobile">
@@ -32,7 +32,7 @@
         <a class="hm-current" aria-current="page" href="calendar.html">Music Calendar</a>
         <a href="video-library.html">Video Library</a>
         <a href="playlist.html">My Playlist</a>
-        <a href="about.html">About Arnie</a>
+        <a href="guitars.html">My Guitars</a><a href="about.html">About Arnie</a>
       </nav>
     </div>
   </header>
@@ -43,7 +43,7 @@
       <p class="calendar-eyebrow"><span>✦</span> A SONG FOR EVERY DAY <span>✦</span></p>
       <h1 id="page-title">Music Calendar</h1>
       <div class="title-filigree" aria-hidden="true"><span>♫</span></div>
-      <p>Every date brings another favorite performance from Arnie’s collection.</p>
+      <p>Discover Arnie’s favorite classic songs from his Morning Maniac Music archive.</p>
     </section>
 
     <section class="featured-section" aria-labelledby="featured-heading">
@@ -54,20 +54,18 @@
       </div>
 
       <article class="featured-card" aria-live="off">
-        <div class="featured-media" id="featured-media">
-          <img id="featured-thumbnail" alt="" src="">
-          <span class="media-note" aria-hidden="true">♫</span>
-        </div>
+        <div class="featured-media" id="featured-media"></div>
         <div class="featured-copy">
           <p class="featured-overline" id="featured-overline">Today’s selection</p>
           <h3 id="featured-song-title">Loading today’s song…</h3>
           <p class="featured-meta" id="featured-song-meta"></p>
-          <p class="featured-description">Selected automatically from Arnie’s Video Library using the date you choose.</p>
+          <p class="featured-description" id="featured-description"></p>
           <div class="featured-actions">
             <button class="gold-button watch-button" id="watch-performance" type="button">
               <span aria-hidden="true">▶</span> Watch the Performance
             </button>
-            <a class="library-link" href="video-library.html">Browse the Video Library <span aria-hidden="true">→</span></a>
+            <a class="library-link" id="watch-on-youtube" href="#" target="_blank" rel="noopener noreferrer" hidden>Watch on YouTube <span aria-hidden="true">↗</span></a>
+            <a class="library-link" id="original-archive-link" href="https://morningmaniacmusic.com/category/2020/november-2020/" target="_blank" rel="noopener noreferrer">View Original Song Page <span aria-hidden="true">→</span></a>
           </div>
           <p class="playback-status" id="playback-status"></p>
         </div>
@@ -80,7 +78,7 @@
       <div class="section-heading centered-heading calendar-intro">
         <p class="section-kicker">EXPLORE THE COLLECTION</p>
         <h2 id="calendar-heading">Choose a Date</h2>
-        <p>Select any day to discover its featured song. Use the arrow keys to move between dates.</p>
+        <p>Browse Arnie’s November song selections. Choose a date to see its featured song and listen or visit the original recording.</p>
       </div>
 
       <div class="calendar-panel">
@@ -101,10 +99,11 @@
           <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
         </div>
         <div class="calendar-grid" id="calendar-grid" role="grid" aria-labelledby="month-title"></div>
+        <div class="mobile-song-list" id="mobile-song-list" aria-label="Songs this month"></div>
 
         <div class="calendar-legend" aria-label="Calendar legend">
           <span><i class="legend-swatch today-swatch" aria-hidden="true"></i> Today</span>
-          <span><i class="legend-swatch selected-swatch" aria-hidden="true"></i> Selected song</span>
+          <span><i class="legend-swatch selected-swatch" aria-hidden="true"></i> Selected date</span>
         </div>
       </div>
       <p class="selection-announcement sr-only" id="selection-announcement" aria-live="polite"></p>

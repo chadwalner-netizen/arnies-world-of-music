@@ -374,6 +374,7 @@
   align-items: center;
   justify-content: center;
   gap: .5rem;
+  text-decoration: none;
   border: 1px solid var(--gold-200);
   color: #171006;
   background: var(--gold-button);
@@ -519,7 +520,7 @@
 @media (max-width: 720px) {
   .playlist-hero {
     min-height: 350px;
-    padding: 4.25rem 1rem 4rem;
+    padding: 3.5rem 1rem 3.35rem;
   }
 
   .playlist-hero h1 {

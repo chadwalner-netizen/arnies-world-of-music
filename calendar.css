@@ -605,7 +605,7 @@
 @media (max-width: 680px) {
   .calendar-hero {
     min-height: 340px;
-    padding: 4.25rem 1rem 4rem;
+    padding: 3.5rem 1rem 3.35rem;
   }
 
   .calendar-hero h1 {
@@ -723,5 +723,142 @@
 
   .calendar-legend {
     font-size: .82rem;
+  }
+}
+
+/* Three-song classic archive preview: all other site styles are unchanged. */
+.classic-song-art {
+  width: 100%; min-height: 430px; height: 100%; padding: 2rem;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: 1.6rem; text-align: center;
+  background: radial-gradient(circle at 50% 45%, #173b5b 0%, #071a2b 52%, #02070d 100%);
+}
+.classic-song-art-note { color: #eec46d; font: 5rem/1 Georgia, serif; text-shadow: 0 0 35px #ddb25c65; }
+.classic-song-art-title { max-width: 90%; color: #f4d484; font: 700 clamp(2rem, 3.8vw, 3.6rem)/1.15 Georgia, serif; }
+.day-button.has-song { border-color: #c79b44; box-shadow: inset 0 0 0 1px #e0b96144; }
+.day-button.has-song .day-song-mark { font-size: 1.18rem; }
+@media (max-width: 900px) { .classic-song-art { min-height: 0; aspect-ratio: 16/9; } }
+
+/* Readability and song-title refinements. Scoped to the Music Calendar. */
+.selected-date {
+  font-family: var(--sans);
+  font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+  font-weight: 750;
+  line-height: 1.55;
+  color: #fff1cf;
+}
+.calendar-intro > p:last-child {
+  max-width: 780px;
+  margin-inline: auto;
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
+  line-height: 1.65;
+  color: #e9edf2;
+}
+.featured-description {
+  font-size: clamp(1.08rem, 1.35vw, 1.18rem);
+  line-height: 1.7;
+  color: #e9edf2;
+}
+.playback-status {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: #e0e7ee;
+}
+.day-button {
+  min-height: 132px;
+  aspect-ratio: auto;
+  justify-content: flex-start;
+  gap: .55rem;
+  padding: .85rem .7rem;
+  text-align: left;
+}
+.day-number { font-size: 1.13rem; line-height: 1.2; }
+.day-song-title {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  color: #ffe4a2;
+  font-size: clamp(.74rem, .95vw, .93rem);
+  font-weight: 700;
+  line-height: 1.28;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+.day-button.is-selected .day-song-title { color: #281807; }
+.day-song-mark { margin-top: auto; }
+.mobile-song-list { display: none; }
+@media (min-width: 681px) and (max-width: 950px) {
+  .day-button { min-height: 112px; padding: .6rem .4rem; }
+  .day-song-title { font-size: .72rem; }
+}
+@media (max-width: 680px) {
+  .selected-date { font-size: 1.2rem; }
+  .calendar-intro > p:last-child { font-size: 1.08rem; }
+  .day-button { min-height: 53px; padding: .42rem; gap: .15rem; }
+  .day-number { font-size: .9rem; }
+  .day-song-title { display: none; }
+  .day-song-mark { font-size: .7rem; }
+  .mobile-song-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .5rem;
+    margin-top: 1.4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #8b642c;
+  }
+  .mobile-song-list h4 {
+    margin: 0 0 .35rem;
+    color: var(--gold-300);
+    font: 700 1.4rem/1.3 var(--display);
+  }
+  .mobile-song-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .75rem .85rem;
+    border: 1px solid #52647b;
+    border-radius: 9px;
+    background: #0c2032;
+    color: #f3e4c3;
+    text-align: left;
+    font-family: var(--sans);
+    cursor: pointer;
+  }
+  .mobile-song-item:hover, .mobile-song-item:focus-visible { border-color: var(--gold-300); background: #183249; }
+  .mobile-song-item.is-selected { background: #624615; border-color: #ffdf86; }
+  .mobile-song-day {
+    display: grid;
+    place-items: center;
+    flex: 0 0 2.25rem;
+    width: 2.25rem;
+    min-height: 2.25rem;
+    border: 1px solid #b99654;
+    border-radius: 7px;
+    color: #ffe2a0;
+    font-weight: 800;
+  }
+  .mobile-song-title { min-width: 0; font-size: 1rem; font-weight: 650; line-height: 1.4; }
+}
+
+/* Month-only calendar: spacing slots keep weekday alignment without adjacent dates. */
+.calendar-empty-slot { min-width: 0; pointer-events: none; }
+
+/* Show the selected YouTube recording thumbnail before playback. */
+.featured-media img.featured-video-thumbnail {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+  object-fit: cover;
+  object-position: center;
+  background: #071522;
+}
+@media (max-width: 900px) {
+  .featured-media img.featured-video-thumbnail {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
   }
 }

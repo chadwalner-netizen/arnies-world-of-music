@@ -24,12 +24,21 @@
   const videosById = new Map(data.videos.map(video => [video.id, video]));
   let state = playlistStore.read();
 
-  function hasPlayableVideo(video) {
+  function hasYouTubeVideo(video) {
     return typeof video.youtubeId === "string" && /^[A-Za-z0-9_-]{6,20}$/.test(video.youtubeId);
+  }
+
+  function hasPlayableVideo(video) {
+    return hasYouTubeVideo(video) && video.embeddable !== false;
   }
 
   function validPlaylistIds(ids) {
     return ids.filter(id => videosById.has(id));
+  }
+
+  const migratedIds = validPlaylistIds(state.ids);
+  if (migratedIds.length !== state.ids.length) {
+    state = playlistStore.replace(migratedIds);
   }
 
   function updateState(nextState, message = "") {
@@ -76,12 +85,13 @@
     copy.className = "playlist-copy";
     title.textContent = video.title;
     meta.className = "song-meta";
-    meta.textContent = `${video.artist} · ${video.genre}`;
-    status.className = "video-status";
-    status.textContent = hasPlayableVideo(video)
-      ? "This performance is ready to watch."
-      : "Video Link Coming Soon.";
-    copy.append(title, meta, status);
+    meta.textContent = `${video.artistRole || "Song artist"}: ${video.artist} · ${video.genre}`;
+    copy.append(title, meta);
+    if (hasPlayableVideo(video)) {
+      status.className = "video-status";
+      status.textContent = "This performance is ready to watch.";
+      copy.append(status);
+    }
 
     actions.className = "item-actions";
     if (hasPlayableVideo(video)) {
@@ -91,6 +101,14 @@
       watch.dataset.action = "watch";
       watch.dataset.id = String(video.id);
       watch.innerHTML = '<span aria-hidden="true">▶</span> Watch';
+      actions.append(watch);
+    } else if (hasYouTubeVideo(video)) {
+      const watch = document.createElement("a");
+      watch.className = "watch-song";
+      watch.href = video.youtubeUrl || `https://www.youtube.com/watch?v=${encodeURIComponent(video.youtubeId)}`;
+      watch.target = "_blank";
+      watch.rel = "noopener";
+      watch.innerHTML = '<span aria-hidden="true">▶</span> Watch on YouTube';
       actions.append(watch);
     } else {
       const comingSoon = document.createElement("span");

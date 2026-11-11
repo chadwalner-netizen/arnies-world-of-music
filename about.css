@@ -469,7 +469,7 @@ body {
 
   .portrait-hero {
     min-height: auto;
-    padding: 3.75rem 1.25rem 4.25rem;
+    padding: 3.1rem 1.25rem 3.5rem;
     text-align: center;
   }
 
@@ -507,11 +507,11 @@ body {
   .story-section,
   .moments-section,
   .legacy-section {
-    padding: 4.25rem 1.25rem;
+    padding: 3.7rem 1.25rem;
   }
 
   .journey-layout {
-    gap: 2.5rem;
+    gap: 2.2rem;
   }
 
   .journey-copy p,
