@@ -23,6 +23,11 @@
 
   const videosById = new Map(data.videos.map(video => [video.id, video]));
   let state = playlistStore.read();
+  const tabs=document.getElementById("playlist-tabs");
+  const nameInput=document.getElementById("playlist-name");
+  function renderTabs(){const all=playlistStore.read();tabs.replaceChildren(...all.playlists.map((pl,i)=>{const b=document.createElement("button");b.type="button";b.className="playlist-tab"+(i===all.active?" active":"");b.textContent=`${pl.name} (${pl.ids.length})`;b.setAttribute("aria-pressed",String(i===all.active));b.addEventListener("click",()=>updateState(playlistStore.select(i)));return b}));nameInput.value=all.playlists[all.active].name;}
+  document.getElementById("rename-playlist").addEventListener("click",()=>{if(!nameInput.value.trim())return;updateState(playlistStore.rename(playlistStore.read().active,nameInput.value),"Playlist renamed.")});
+
 
   function hasYouTubeVideo(video) {
     return typeof video.youtubeId === "string" && /^[A-Za-z0-9_-]{6,20}$/.test(video.youtubeId);
@@ -46,6 +51,7 @@
     state = { ids: validIds, available: nextState.available };
     storageWarning.hidden = state.available;
     if (message) feedback.textContent = message;
+    renderTabs();
     render();
   }
 

@@ -42,12 +42,15 @@
     <section class="playlist-hero" aria-labelledby="page-title">
       <div class="hero-glow" aria-hidden="true"></div>
       <p class="playlist-eyebrow"><span>✦</span> YOUR FAVORITE PERFORMANCES <span>✦</span></p>
-      <h1 id="page-title">My Playlist</h1>
+      <h1 id="page-title">My Playlists</h1>
       <div class="title-filigree" aria-hidden="true"><span>♫</span></div>
-      <p>Create your own collection of favorite performances from Arnie's World of Music.</p>
+      <p>Create and save three personal collections of favorite performances from Arnie's World of Music.</p>
     </section>
 
     <section class="playlist-section" aria-labelledby="collection-heading">
+      <div class="playlist-tabs" id="playlist-tabs" role="group" aria-label="Choose a playlist"></div>
+      <div class="playlist-rename"><label for="playlist-name">Playlist name</label><input id="playlist-name" maxlength="45" placeholder="Name your playlist"><button id="rename-playlist" type="button">Save Name</button></div>
+      <p class="playlist-help">Your three playlists save automatically in this browser on this device. Each can contain any number of songs.</p>
       <div class="collection-heading">
         <div>
           <p class="section-kicker">YOUR PERSONAL COLLECTION</p>
@@ -56,7 +59,7 @@
         </div>
         <div class="collection-actions">
           <a class="gold-action browse-action" href="video-library.html">Browse Video Library <span aria-hidden="true">→</span></a>
-          <button class="clear-playlist" id="clear-playlist" type="button">Clear Playlist</button>
+          <button class="clear-playlist" id="clear-playlist" type="button">Clear Selected Playlist</button>
         </div>
       </div>
 

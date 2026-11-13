@@ -25,7 +25,17 @@
     "https://i.ytimg.com/vi/pbYYr-hAwRo/hqdefault.jpg",
     "https://i.ytimg.com/vi/ZRxzgjfjpeQ/hqdefault.jpg",
     "https://i.ytimg.com/vi/fHUBM50JrOE/hqdefault.jpg",
-    "https://i.ytimg.com/vi/wMm1Z3G-4LI/hqdefault.jpg"
+    "https://i.ytimg.com/vi/wMm1Z3G-4LI/hqdefault.jpg",
+    "https://i.ytimg.com/vi/3urL2qmECMI/hqdefault.jpg",
+    "https://i.ytimg.com/vi/8rmA93NcL_0/hqdefault.jpg",
+    "https://i.ytimg.com/vi/ih-ZGA9pJCU/hqdefault.jpg",
+    "https://i.ytimg.com/vi/fd6hRqX4g5A/hqdefault.jpg",
+    "https://i.ytimg.com/vi/a1yGJl6QSjE/hqdefault.jpg",
+    "https://i.ytimg.com/vi/0dvq_g4UJuw/hqdefault.jpg",
+    "https://i.ytimg.com/vi/ek4EcxwxPKE/hqdefault.jpg",
+    "https://i.ytimg.com/vi/yJBLCHpnBXk/hqdefault.jpg",
+    "https://i.ytimg.com/vi/B2DJPTa3Tl8/hqdefault.jpg",
+    "https://i.ytimg.com/vi/oF4QvMUu8nk/hqdefault.jpg"
   ];
 
   const videos = [
@@ -52,11 +62,49 @@
     { id: 121, title: "Sounds of Silence - Version 1", artist: "Simon & Garfunkel", artistRole: "Original artist", genre: "Folk", thumb: 20, featured: false, youtubeId: "ZRxzgjfjpeQ", youtubeUrl: "https://www.youtube.com/watch?v=ZRxzgjfjpeQ", embeddable: true },
     { id: 122, title: "Sign On The Window", artist: "Bob Dylan", artistRole: "Original artist", genre: "Folk Rock", thumb: 21, featured: false, youtubeId: "fHUBM50JrOE", youtubeUrl: "https://www.youtube.com/watch?v=fHUBM50JrOE", embeddable: true },
     { id: 123, title: "It Takes A Lot To Laugh", artist: "Bob Dylan", artistRole: "Original artist", genre: "Blues Rock", thumb: 22, featured: false, youtubeId: "wMm1Z3G-4LI", youtubeUrl: "https://www.youtube.com/watch?v=wMm1Z3G-4LI", embeddable: true }
+    ,
+    { id: 124, title: "Yogart Lady", artist: "To be confirmed", artistRole: "Original artist", genre: "Unclassified", thumb: 23, featured: false, youtubeId: "3urL2qmECMI", youtubeUrl: "https://www.youtube.com/watch?v=3urL2qmECMI", embeddable: true },
+    { id: 125, title: "Up on Cripple Creek", artist: "The Band", artistRole: "Original artist", genre: "Roots Rock", thumb: 24, featured: false, youtubeId: "8rmA93NcL_0", youtubeUrl: "https://www.youtube.com/watch?v=8rmA93NcL_0", embeddable: true },
+    { id: 126, title: "Take It Easy", artist: "Jackson Browne and Glenn Frey", artistRole: "Songwriters", genre: "Rock", thumb: 25, featured: false, youtubeId: "ih-ZGA9pJCU", youtubeUrl: "https://www.youtube.com/watch?v=ih-ZGA9pJCU", embeddable: true },
+    { id: 127, title: "Silver Cup Silver Spoon", artist: "To be confirmed", artistRole: "Original artist", genre: "Unclassified", thumb: 26, featured: false, youtubeId: "fd6hRqX4g5A", youtubeUrl: "https://www.youtube.com/watch?v=fd6hRqX4g5A", embeddable: true },
+    { id: 128, title: "Noodling", artist: "Improvisation", artistRole: "Instrumental", genre: "Instrumental", thumb: 27, featured: false, youtubeId: "a1yGJl6QSjE", youtubeUrl: "https://www.youtube.com/watch?v=a1yGJl6QSjE", embeddable: true },
+    { id: 129, title: "Mr. Tambourine Man", artist: "Bob Dylan", artistRole: "Original artist", genre: "Folk Rock", thumb: 28, featured: false, youtubeId: "0dvq_g4UJuw", youtubeUrl: "https://www.youtube.com/watch?v=0dvq_g4UJuw", embeddable: true },
+    { id: 130, title: "I Got the Hots for You Babe", artist: "To be confirmed", artistRole: "Original artist", genre: "Unclassified", thumb: 29, featured: false, youtubeId: "ek4EcxwxPKE", youtubeUrl: "https://www.youtube.com/watch?v=ek4EcxwxPKE", embeddable: true },
+    { id: 131, title: "Her Majesty", artist: "The Beatles", artistRole: "Original artist", genre: "Rock", thumb: 30, featured: false, youtubeId: "yJBLCHpnBXk", youtubeUrl: "https://www.youtube.com/watch?v=yJBLCHpnBXk", embeddable: true },
+    { id: 132, title: "Acoustic Noodling", artist: "Improvisation", artistRole: "Instrumental", genre: "Instrumental", thumb: 31, featured: false, youtubeId: "B2DJPTa3Tl8", youtubeUrl: "https://www.youtube.com/watch?v=B2DJPTa3Tl8", embeddable: true },
+    { id: 133, title: "You're Gonna Make Me Lonesome When You Go", artist: "Bob Dylan", artistRole: "Original artist", genre: "Folk Rock", thumb: 32, featured: false, youtubeId: "oF4QvMUu8nk", youtubeUrl: "https://www.youtube.com/watch?v=oF4QvMUu8nk", embeddable: true }
   ];
+
+  // Keep each song's versions together, in numerical order, while preserving
+  // the original placement of every song group and all unrelated songs.
+  // New versions added to this data file are ordered automatically.
+  const versionInfo = title => {
+    const match = title.match(/^(.*?)\s*(?:[-–—]\s*)?\(?Version\s+(\d+)\)?\s*$/i);
+    return match ? { song: match[1].trim().toLowerCase(), number: Number(match[2]) } : null;
+  };
+  const songGroups = new Map();
+  for (const video of videos) {
+    const info = versionInfo(video.title);
+    if (!info) continue;
+    if (!songGroups.has(info.song)) songGroups.set(info.song, []);
+    songGroups.get(info.song).push(video);
+  }
+  for (const group of songGroups.values()) {
+    group.sort((a, b) => versionInfo(a.title).number - versionInfo(b.title).number);
+  }
+  const emitted = new Set();
+  const orderedVideos = [];
+  for (const video of videos) {
+    const info = versionInfo(video.title);
+    if (!info) { orderedVideos.push(video); continue; }
+    if (emitted.has(info.song)) continue;
+    orderedVideos.push(...songGroups.get(info.song));
+    emitted.add(info.song);
+  }
 
   window.ARNIE_MUSIC_DATA = Object.freeze({
     playlistUrl,
     photos: Object.freeze(photos),
-    videos: Object.freeze(videos.map(video => Object.freeze(video)))
+    videos: Object.freeze(orderedVideos.map(video => Object.freeze(video)))
   });
 })();

@@ -615,3 +615,13 @@
     padding: 1.25rem;
   }
 }
+
+/* Three independent personal playlists */
+.playlist-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}
+.playlist-tab{cursor:pointer;border:1px solid #a98543;background:#091624;color:#e8d6a0;border-radius:9px;padding:16px 12px;font:700 1rem Georgia,serif;overflow-wrap:anywhere}
+.playlist-tab.active,.playlist-tab:hover,.playlist-tab:focus-visible{background:linear-gradient(#ffeaa2,#c99a36);color:#1c160c;outline-offset:3px}
+.playlist-rename{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;color:#f0ddb0}
+.playlist-rename input{flex:1;min-width:160px;max-width:360px;background:#fff;color:#171717;border:1px solid #b69a58;border-radius:6px;padding:11px;font-size:1rem}
+.playlist-rename button{border:1px solid #b38c43;border-radius:6px;padding:11px 16px;background:#e4c36b;color:#18120a;font-weight:700;cursor:pointer}
+.playlist-help{color:#d2c8ad;font-size:.94rem;margin-bottom:25px}
+@media(max-width:580px){.playlist-tabs{gap:6px}.playlist-tab{font-size:.8rem;padding:12px 5px}}
