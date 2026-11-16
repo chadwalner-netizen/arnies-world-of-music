@@ -1,0 +1,12 @@
+Arnie’s World of Music — November 16, 2026
+
+Five recordings added to Video Library (YouTube IDs supplied by Chad).
+The Vault added, featuring The Budick Tapes – Part 1.
+Seven song-title corrections applied to specified video entries.
+Someday Soon credited to Suzy Bogguss; River Song and Adonai Love Me credited to Nefesh Mountain.
+Existing three-playlist storage and other site pages retained.
+Continuous autoplay NOT implemented; pending paid approval.
+
+To publish: unzip and copy contents of arnies-world-of-music into the root of the GitHub Pages repository. Do not upload the enclosing folder unless the existing repository uses that structure.
+
+Note: YouTube playback/embeddability and visual browser behavior require testing on the live site.
