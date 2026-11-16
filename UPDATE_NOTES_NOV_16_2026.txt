@@ -10,3 +10,7 @@ Continuous autoplay NOT implemented; pending paid approval.
 To publish: unzip and copy contents of arnies-world-of-music into the root of the GitHub Pages repository. Do not upload the enclosing folder unless the existing repository uses that structure.
 
 Note: YouTube playback/embeddability and visual browser behavior require testing on the live site.
+
+FINAL CATEGORY/TITLE CORRECTIONS (Nov 16):
+- I Can't Help Myself (Four Tops) moved to Weekend in Maine category.
+- Video KE dZUaRNY04 (without space: KEdZUaRNY04) renamed from River Song to Can't Help Falling in Love (Elvis Presley); original video URL preserved.

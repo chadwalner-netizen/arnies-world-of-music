@@ -1,0 +1,12 @@
+FINAL REVIEW CORRECTIONS — November 16, 2026
+
+Starting from Nov16_Vault_Adonai_Corrected.
+- First Weekend in Maine Noodling (ID 128): Mr. Tambourine Man — Bob Dylan.
+- First Weekend in Maine Acoustic Noodling (ID 125): Up on Cripple Creek — The Band.
+- Other Great Songs entry ID 202: River Song — Nefesh Mountain (original YouTube link retained).
+- Removed the incorrect Adonai Love Me card (ID 205) from Other Great Songs.
+- The Budick Tapes – Part 1 (ID 201) remains in The Vault with YouTube ID C6N4fvqwqxk.
+- Other existing recordings, site pages, and playlists remain unchanged.
+- Continuous playlist playback is NOT included.
+
+Preview the extracted site before pushing to GitHub.
