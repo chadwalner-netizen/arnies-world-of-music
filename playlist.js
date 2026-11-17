@@ -13,6 +13,20 @@
   const playerTitle = document.getElementById("player-title");
   const playerFrame = document.getElementById("player-frame");
   const closePlayer = document.getElementById("close-player");
+  const playPlaylistButton = document.getElementById("play-playlist");
+  const previousTrackButton = document.getElementById("previous-track");
+  const nextTrackButton = document.getElementById("next-track");
+  const togglePlaybackButton = document.getElementById("toggle-playback");
+  const playerPosition = document.getElementById("player-position");
+  const playerStatus = document.getElementById("player-status");
+  const youtubeLink = document.getElementById("player-youtube-link");
+
+  let playbackQueue = [];
+  let playbackIndex = -1;
+  let youtubePlayer = null;
+  let playerReady = false;
+  let playbackSession = 0;
+  let youtubeApiPromise = null;
 
   if (!data || !playlistStore || !Array.isArray(data.videos) || !Array.isArray(data.photos)) {
     emptyState.querySelector("h3").textContent = "Your playlist could not be loaded.";
@@ -79,6 +93,10 @@
 
     item.className = "playlist-item";
     item.dataset.id = String(video.id);
+    if (dialog.open && playbackQueue[playbackIndex]?.id === video.id) {
+      item.classList.add("currently-playing");
+      item.setAttribute("aria-current", "true");
+    }
     thumb.className = "playlist-thumb";
     image.src = data.photos[video.thumb];
     image.alt = `Arnie performing ${video.title}`;
@@ -137,27 +155,203 @@
     const total = videos.length;
     count.textContent = `${total} ${total === 1 ? "performance" : "performances"}`;
     clearButton.disabled = total === 0;
+    playPlaylistButton.disabled = !videos.some(hasPlayableVideo);
     emptyState.hidden = total > 0;
     list.hidden = total === 0;
     list.replaceChildren(...videos.map((video, index) => createPlaylistItem(video, index, total)));
   }
 
-  function closeDialog() {
-    if (dialog.open) dialog.close();
-    playerFrame.replaceChildren();
+  // The YouTube IFrame API provides the ENDED event; a plain iframe cannot.
+  function loadYouTubeApi() {
+    if (window.YT && typeof window.YT.Player === "function") return Promise.resolve();
+    if (youtubeApiPromise) return youtubeApiPromise;
+
+    youtubeApiPromise = new Promise((resolve, reject) => {
+      const previousCallback = window.onYouTubeIframeAPIReady;
+      const script = document.createElement("script");
+      let complete = false;
+      const timeout = window.setTimeout(() => fail(new Error("YouTube took too long to load.")), 15000);
+      function fail(error) {
+        if (complete) return;
+        complete = true;
+        window.clearTimeout(timeout);
+        reject(error);
+      }
+      window.onYouTubeIframeAPIReady = () => {
+        if (typeof previousCallback === "function") previousCallback();
+        if (complete) return;
+        complete = true;
+        window.clearTimeout(timeout);
+        resolve();
+      };
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.onerror = () => fail(new Error("YouTube's player could not be loaded."));
+      document.head.append(script);
+    }).catch(error => {
+      youtubeApiPromise = null; // Allow another attempt if the connection recovers.
+      throw error;
+    });
+    return youtubeApiPromise;
   }
 
-  function playVideo(video) {
-    if (!hasPlayableVideo(video)) return;
-    const iframe = document.createElement("iframe");
-    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.youtubeId)}?autoplay=1&rel=0`;
-    iframe.title = `${video.title} performed by Arnie`;
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-    iframe.allowFullscreen = true;
-    playerTitle.textContent = video.title;
-    playerFrame.replaceChildren(iframe);
-    dialog.showModal();
+  function playbackStatus(message, showExternalLink = false) {
+    playerStatus.textContent = message;
+    youtubeLink.hidden = !showExternalLink;
   }
+
+  function refreshPlayerControls() {
+    previousTrackButton.disabled = playbackIndex <= 0;
+    nextTrackButton.disabled = playbackIndex < 0 || playbackIndex >= playbackQueue.length - 1;
+    togglePlaybackButton.disabled = !playerReady;
+  }
+
+  function refreshCurrentTrack() {
+    const video = playbackQueue[playbackIndex];
+    if (!video) return;
+    playerTitle.textContent = video.title;
+    playerPosition.textContent = `Song ${playbackIndex + 1} of ${playbackQueue.length} · ${video.artist}`;
+    youtubeLink.href = video.youtubeUrl || `https://www.youtube.com/watch?v=${encodeURIComponent(video.youtubeId)}`;
+    refreshPlayerControls();
+    list.querySelectorAll(".playlist-item").forEach(item => {
+      const active = Number(item.dataset.id) === video.id;
+      item.classList.toggle("currently-playing", active);
+      if (active) item.setAttribute("aria-current", "true");
+      else item.removeAttribute("aria-current");
+    });
+  }
+
+  function advanceTrack(direction) {
+    const nextIndex = playbackIndex + direction;
+    if (nextIndex < 0 || nextIndex >= playbackQueue.length) return;
+    playbackIndex = nextIndex;
+    refreshCurrentTrack();
+    playbackStatus("Starting the next recording…");
+    togglePlaybackButton.textContent = "⏸ Pause";
+    if (playerReady && youtubePlayer && typeof youtubePlayer.loadVideoById === "function") {
+      youtubePlayer.loadVideoById(playbackQueue[playbackIndex].youtubeId);
+    } else if (playerFrame.querySelector("iframe")) {
+      showManualPlayer();
+    }
+  }
+
+  function showManualPlayer() {
+    // Useful if the API is blocked, though this fallback cannot auto-advance.
+    const video = playbackQueue[playbackIndex];
+    if (!video || !dialog.open) return;
+    const iframe = document.createElement("iframe");
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.youtubeId)}?autoplay=1&rel=0&playsinline=1`;
+    iframe.title = `${video.title} performed by Arnie`;
+    iframe.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    iframe.allowFullscreen = true;
+    playerFrame.replaceChildren(iframe);
+    playbackStatus("Automatic advancement is unavailable. Use the video controls or open this recording on YouTube.", true);
+    togglePlaybackButton.disabled = true;
+  }
+
+  function startPlayback(startId) {
+    playbackQueue = state.ids.map(id => videosById.get(id)).filter(video => video && hasPlayableVideo(video));
+    if (!playbackQueue.length) return;
+    const requestedIndex = playbackQueue.findIndex(video => video.id === startId);
+    playbackIndex = requestedIndex < 0 ? 0 : requestedIndex;
+    playerReady = false;
+    const session = ++playbackSession;
+    dialog.showModal();
+    refreshCurrentTrack();
+    playbackStatus("Loading the YouTube player…");
+    togglePlaybackButton.textContent = "⏸ Pause";
+
+    loadYouTubeApi().then(() => {
+      if (!dialog.open || playbackSession !== session) return;
+      const mount = document.createElement("div");
+      mount.id = "arnie-youtube-player";
+      playerFrame.replaceChildren(mount);
+      const playerVars = { autoplay: 1, controls: 1, rel: 0, playsinline: 1 };
+      if (/^https?:$/.test(window.location.protocol)) playerVars.origin = window.location.origin;
+      const initialVideoId = playbackQueue[playbackIndex].youtubeId;
+      youtubePlayer = new window.YT.Player(mount, {
+        height: "100%",
+        width: "100%",
+        videoId: initialVideoId,
+        playerVars,
+        events: {
+          onReady(event) {
+            if (!dialog.open || playbackSession !== session) return;
+            playerReady = true;
+            refreshPlayerControls();
+            playbackStatus("If playback doesn't begin, press Play. Some mobile browsers require another tap.");
+            // A visitor might skip tracks while the first iframe is initializing.
+            if (playbackQueue[playbackIndex].youtubeId !== initialVideoId) {
+              event.target.loadVideoById(playbackQueue[playbackIndex].youtubeId);
+            } else {
+              event.target.playVideo();
+            }
+          },
+          onStateChange(event) {
+            if (!dialog.open || playbackSession !== session) return;
+            const states = window.YT.PlayerState;
+            if (event.data === states.ENDED) {
+              if (playbackIndex < playbackQueue.length - 1) advanceTrack(1);
+              else {
+                playbackStatus("Playlist complete. Thank you for listening!");
+                togglePlaybackButton.textContent = "↻ Replay Song";
+              }
+            } else if (event.data === states.PLAYING) {
+              playbackStatus("Playing automatically — enjoy the music!");
+              togglePlaybackButton.textContent = "⏸ Pause";
+            } else if (event.data === states.PAUSED) {
+              playbackStatus("Paused.");
+              togglePlaybackButton.textContent = "▶ Play";
+            }
+          },
+          onError() {
+            if (!dialog.open || playbackSession !== session) return;
+            playbackStatus("This recording could not play here. Try the YouTube link or choose Next.", true);
+            togglePlaybackButton.textContent = "▶ Retry";
+          },
+          onAutoplayBlocked() {
+            if (!dialog.open || playbackSession !== session) return;
+            playbackStatus("Your browser blocked automatic playback. Tap Play in the video player or use the Play button below.");
+            togglePlaybackButton.textContent = "▶ Play";
+          }
+        }
+      });
+    }).catch(() => {
+      if (dialog.open && playbackSession === session) showManualPlayer();
+    });
+  }
+
+  function closeDialog() {
+    if (dialog.open) dialog.close();
+  }
+
+  function stopPlayer() {
+    playbackSession++;
+    if (youtubePlayer && typeof youtubePlayer.destroy === "function") youtubePlayer.destroy();
+    youtubePlayer = null;
+    playerReady = false;
+    playbackQueue = [];
+    playbackIndex = -1;
+    playerFrame.replaceChildren();
+    list.querySelectorAll(".currently-playing").forEach(item => {
+      item.classList.remove("currently-playing");
+      item.removeAttribute("aria-current");
+    });
+  }
+
+  playPlaylistButton.addEventListener("click", () => startPlayback());
+  previousTrackButton.addEventListener("click", () => advanceTrack(-1));
+  nextTrackButton.addEventListener("click", () => advanceTrack(1));
+  togglePlaybackButton.addEventListener("click", () => {
+    if (!playerReady || !youtubePlayer) return;
+    const current = youtubePlayer.getPlayerState();
+    if (current === window.YT.PlayerState.PLAYING) youtubePlayer.pauseVideo();
+    else if (current === window.YT.PlayerState.ENDED) {
+      youtubePlayer.seekTo(0, true);
+      youtubePlayer.playVideo();
+    } else youtubePlayer.playVideo();
+  });
 
   list.addEventListener("click", event => {
     const button = event.target.closest("[data-action]");
@@ -166,7 +360,7 @@
     if (!video) return;
 
     if (button.dataset.action === "watch") {
-      playVideo(video);
+      startPlayback(video.id);
       return;
     }
 
@@ -193,7 +387,7 @@
   dialog.addEventListener("click", event => {
     if (event.target === dialog) closeDialog();
   });
-  dialog.addEventListener("close", () => playerFrame.replaceChildren());
+  dialog.addEventListener("close", stopPlayer);
 
   window.addEventListener(playlistStore.eventName, event => {
     const next = event.detail;
