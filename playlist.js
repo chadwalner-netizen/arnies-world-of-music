@@ -27,6 +27,15 @@
   let playerReady = false;
   let playbackSession = 0;
   let youtubeApiPromise = null;
+  const mobileBrowser = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || navigator.userAgentData?.mobile === true;
+  let nativePlaylist = false;
+  let fallbackActive = false;
+  let playerGeneration = 0;
+  let playerReadyTimer = null;
+  let playbackMonitor = null;
+  let endRecoveryTimer = null;
+  let nearEndReadings = 0;
+  let manualSelectionAt = 0;
 
   if (!data || !playlistStore || !Array.isArray(data.videos) || !Array.isArray(data.photos)) {
     emptyState.querySelector("h3").textContent = "Your playlist could not be loaded.";
@@ -221,15 +230,93 @@
     });
   }
 
+  function cancelEndRecovery() {
+    if (endRecoveryTimer !== null) window.clearTimeout(endRecoveryTimer);
+    endRecoveryTimer = null;
+    nearEndReadings = 0;
+  }
+
+  function syncNativePlaylistIndex() {
+    if (!nativePlaylist || !playerReady || !youtubePlayer ||
+        typeof youtubePlayer.getPlaylistIndex !== "function" ||
+        Date.now() - manualSelectionAt < 1200) return;
+    try {
+      const index = youtubePlayer.getPlaylistIndex();
+      if (Number.isInteger(index) && index >= 0 && index < playbackQueue.length && index !== playbackIndex) {
+        playbackIndex = index;
+        cancelEndRecovery();
+        refreshCurrentTrack();
+      }
+    } catch { /* Keep the visible position until the API responds again. */ }
+  }
+
+  // On some phones the embedded player misses its ENDED notification. Let
+  // YouTube advance its own queue first, then recover only if it remains stuck.
+  function recoverAfterEnd() {
+    if (playbackIndex >= playbackQueue.length - 1) {
+      playbackStatus("Playlist complete. Thank you for listening!");
+      togglePlaybackButton.textContent = "↻ Replay Song";
+      return;
+    }
+    if (endRecoveryTimer !== null) return;
+    const endedIndex = playbackIndex;
+    endRecoveryTimer = window.setTimeout(() => {
+      endRecoveryTimer = null;
+      if (!dialog.open || !playerReady || !nativePlaylist) return;
+      syncNativePlaylistIndex();
+      if (playbackIndex === endedIndex) advanceTrack(1);
+    }, 2000);
+  }
+
+  function startMobileMonitor(session, generation) {
+    if (playbackMonitor !== null) window.clearInterval(playbackMonitor);
+    playbackMonitor = window.setInterval(() => {
+      if (!dialog.open || playbackSession !== session || playerGeneration !== generation ||
+          !playerReady || !nativePlaylist || !youtubePlayer) return;
+      syncNativePlaylistIndex();
+      try {
+        const playerState = youtubePlayer.getPlayerState();
+        if (playerState === window.YT.PlayerState.ENDED) {
+          recoverAfterEnd();
+          return;
+        }
+        const duration = youtubePlayer.getDuration?.();
+        const currentTime = youtubePlayer.getCurrentTime?.();
+        if (playerState === window.YT.PlayerState.PLAYING && Number.isFinite(duration) &&
+            duration >= 5 && Number.isFinite(currentTime) && currentTime >= duration - 0.5) {
+          nearEndReadings++;
+          if (nearEndReadings >= 3) recoverAfterEnd();
+        } else {
+          nearEndReadings = 0;
+        }
+      } catch { /* A temporarily disconnected YouTube iframe should not crash the page. */ }
+    }, 1200);
+  }
+
   function advanceTrack(direction) {
     const nextIndex = playbackIndex + direction;
     if (nextIndex < 0 || nextIndex >= playbackQueue.length) return;
+    cancelEndRecovery();
     playbackIndex = nextIndex;
+    manualSelectionAt = Date.now();
     refreshCurrentTrack();
     playbackStatus("Starting the next recording…");
     togglePlaybackButton.textContent = "⏸ Pause";
-    if (playerReady && youtubePlayer && typeof youtubePlayer.loadVideoById === "function") {
-      youtubePlayer.loadVideoById(playbackQueue[playbackIndex].youtubeId);
+    if (playerReady && youtubePlayer) {
+      try {
+        if (nativePlaylist && typeof youtubePlayer.playVideoAt === "function") {
+          youtubePlayer.playVideoAt(playbackIndex);
+        } else if (typeof youtubePlayer.loadVideoById === "function") {
+          youtubePlayer.loadVideoById(playbackQueue[playbackIndex].youtubeId);
+        } else {
+          showManualPlayer();
+        }
+      } catch {
+        showManualPlayer();
+      }
+    } else if (mobileBrowser) {
+      // An uninitialized player should never leave Next looking unresponsive.
+      showManualPlayer();
     } else if (playerFrame.querySelector("iframe")) {
       showManualPlayer();
     }
@@ -239,6 +326,17 @@
     // Useful if the API is blocked, though this fallback cannot auto-advance.
     const video = playbackQueue[playbackIndex];
     if (!video || !dialog.open) return;
+    fallbackActive = true;
+    playerGeneration++;
+    playerReady = false;
+    nativePlaylist = false;
+    if (playerReadyTimer !== null) window.clearTimeout(playerReadyTimer);
+    playerReadyTimer = null;
+    if (playbackMonitor !== null) window.clearInterval(playbackMonitor);
+    playbackMonitor = null;
+    cancelEndRecovery();
+    try { youtubePlayer?.destroy?.(); } catch { /* The player may already be disconnected. */ }
+    youtubePlayer = null;
     const iframe = document.createElement("iframe");
     iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(video.youtubeId)}?autoplay=1&rel=0&playsinline=1`;
     iframe.title = `${video.title} performed by Arnie`;
@@ -256,14 +354,19 @@
     const requestedIndex = playbackQueue.findIndex(video => video.id === startId);
     playbackIndex = requestedIndex < 0 ? 0 : requestedIndex;
     playerReady = false;
+    nativePlaylist = false;
+    fallbackActive = false;
+    manualSelectionAt = 0;
+    cancelEndRecovery();
     const session = ++playbackSession;
+    const generation = ++playerGeneration;
     dialog.showModal();
     refreshCurrentTrack();
     playbackStatus("Loading the YouTube player…");
     togglePlaybackButton.textContent = "⏸ Pause";
 
     loadYouTubeApi().then(() => {
-      if (!dialog.open || playbackSession !== session) return;
+      if (!dialog.open || playbackSession !== session || fallbackActive || playerGeneration !== generation) return;
       const mount = document.createElement("div");
       mount.id = "arnie-youtube-player";
       playerFrame.replaceChildren(mount);
@@ -277,27 +380,41 @@
         playerVars,
         events: {
           onReady(event) {
-            if (!dialog.open || playbackSession !== session) return;
+            if (!dialog.open || playbackSession !== session || playerGeneration !== generation) return;
+            if (playerReadyTimer !== null) window.clearTimeout(playerReadyTimer);
+            playerReadyTimer = null;
             playerReady = true;
             refreshPlayerControls();
             playbackStatus("If playback doesn't begin, press Play. Some mobile browsers require another tap.");
-            // A visitor might skip tracks while the first iframe is initializing.
+            // YouTube's own queue controls mobile transitions more reliably
+            // than repeatedly replacing individual videos via JavaScript.
+            if (mobileBrowser && typeof event.target.loadPlaylist === "function") {
+              try {
+                nativePlaylist = true;
+                event.target.loadPlaylist(playbackQueue.map(video => video.youtubeId), playbackIndex);
+                startMobileMonitor(session, generation);
+                return;
+              } catch {
+                nativePlaylist = false;
+              }
+            }
+            // Desktop behavior is unchanged, including early Next clicks.
             if (playbackQueue[playbackIndex].youtubeId !== initialVideoId) {
               event.target.loadVideoById(playbackQueue[playbackIndex].youtubeId);
-            } else {
-              event.target.playVideo();
-            }
+            } else event.target.playVideo();
           },
           onStateChange(event) {
-            if (!dialog.open || playbackSession !== session) return;
+            if (!dialog.open || playbackSession !== session || playerGeneration !== generation) return;
             const states = window.YT.PlayerState;
             if (event.data === states.ENDED) {
-              if (playbackIndex < playbackQueue.length - 1) advanceTrack(1);
+              if (nativePlaylist) recoverAfterEnd();
+              else if (playbackIndex < playbackQueue.length - 1) advanceTrack(1);
               else {
                 playbackStatus("Playlist complete. Thank you for listening!");
                 togglePlaybackButton.textContent = "↻ Replay Song";
               }
             } else if (event.data === states.PLAYING) {
+              syncNativePlaylistIndex();
               playbackStatus("Playing automatically — enjoy the music!");
               togglePlaybackButton.textContent = "⏸ Pause";
             } else if (event.data === states.PAUSED) {
@@ -306,19 +423,27 @@
             }
           },
           onError() {
-            if (!dialog.open || playbackSession !== session) return;
+            if (!dialog.open || playbackSession !== session || playerGeneration !== generation) return;
             playbackStatus("This recording could not play here. Try the YouTube link or choose Next.", true);
             togglePlaybackButton.textContent = "▶ Retry";
           },
           onAutoplayBlocked() {
-            if (!dialog.open || playbackSession !== session) return;
+            if (!dialog.open || playbackSession !== session || playerGeneration !== generation) return;
             playbackStatus("Your browser blocked automatic playback. Tap Play in the video player or use the Play button below.");
             togglePlaybackButton.textContent = "▶ Play";
           }
         }
       });
+      // Some mobile embeds never finish initializing: make Next usable
+      // through a manual player instead of leaving the dialog stuck forever.
+      playerReadyTimer = window.setTimeout(() => {
+        playerReadyTimer = null;
+        if (dialog.open && playbackSession === session && playerGeneration === generation && !playerReady) {
+          showManualPlayer();
+        }
+      }, 12000);
     }).catch(() => {
-      if (dialog.open && playbackSession === session) showManualPlayer();
+      if (dialog.open && playbackSession === session && playerGeneration === generation) showManualPlayer();
     });
   }
 
@@ -328,9 +453,17 @@
 
   function stopPlayer() {
     playbackSession++;
-    if (youtubePlayer && typeof youtubePlayer.destroy === "function") youtubePlayer.destroy();
+    playerGeneration++;
+    if (playerReadyTimer !== null) window.clearTimeout(playerReadyTimer);
+    playerReadyTimer = null;
+    if (playbackMonitor !== null) window.clearInterval(playbackMonitor);
+    playbackMonitor = null;
+    cancelEndRecovery();
+    try { youtubePlayer?.destroy?.(); } catch { /* Player may already be gone. */ }
     youtubePlayer = null;
     playerReady = false;
+    nativePlaylist = false;
+    fallbackActive = false;
     playbackQueue = [];
     playbackIndex = -1;
     playerFrame.replaceChildren();
